@@ -10,6 +10,9 @@ use tokio_uds::{ConnectFuture as StreamConnectFuture, UnixStream};
 
 use super::Uri;
 
+mod pid;
+use self::pid::Pid;
+
 const UNIX_SCHEME: &str = "unix";
 
 /// A type which implements hyper's client connector interface
@@ -34,6 +37,17 @@ pub struct UnixConnector;
 impl UnixConnector {
     pub fn new() -> Self {
         UnixConnector
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct UnixInfo {
+    pid: Pid,
+}
+
+impl UnixInfo {
+    pub fn pid(&self) -> Pid {
+        self.pid
     }
 }
 
@@ -82,7 +96,12 @@ impl Future for ConnectFuture {
                 }
 
                 ConnectFuture::Connect(f) => match f.poll() {
-                    Ok(Async::Ready(stream)) => return Ok(Async::Ready((stream, Connected::new()))),
+                    Ok(Async::Ready(stream)) => {
+                        let extra = UnixInfo {
+                            pid: pid::get_pid(&stream)?,
+                        };
+                        return Ok(Async::Ready((stream, Connected::new().extra(extra))));
+                    }
                     Ok(Async::NotReady) => return Ok(Async::NotReady),
                     Err(err) => return Err(err),
                 },

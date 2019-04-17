@@ -7,6 +7,8 @@
 extern crate futures;
 extern crate hex;
 extern crate hyper;
+#[cfg(target_os = "linux")]
+extern crate libc;
 extern crate tokio;
 extern crate tokio_io;
 extern crate tokio_uds;

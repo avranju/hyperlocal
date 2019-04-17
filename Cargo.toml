@@ -16,3 +16,6 @@ hyper = "0.12"
 tokio = "0.1"
 tokio-io = "0.1"
 tokio-uds = "0.2"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
